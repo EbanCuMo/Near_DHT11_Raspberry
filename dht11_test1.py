@@ -2,7 +2,9 @@ import datetime
 import time
 import Adafruit_DHT 
 import csv
+from Adafruit_DHT.common import DHT11
 import mysql.connector
+import json
 
 #Connects to MySQL/MariaDB
 db = mysql.connector.connect(host ="localhost",
@@ -22,7 +24,8 @@ pin = 17
 
 with open(r'DHT11CVS','w') as f: #w means write file
     writer = csv.writer(f)
-    writer.writerow(['ID', 'Date', 'Temperature *C','Humidity %']) # CVS file headers
+    writer.writerow(['Date', 'Temperature *C','Humidity %']) # CVS file headers
+
 
 # Try to grab a sensor reading.  Use the read_retry method which will retry up
 # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
@@ -33,7 +36,7 @@ with open(r'DHT11CVS','w') as f: #w means write file
 # guarantee the timing of calls to read the sensor).
 # If this happens try again!
 while True:
-    timenow = datetime.datetime.utcnow()
+    timenow = datetime.datetime.now()
     humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
     if humidity is not None and temperature is not None:
             print('Temp={0:0.1f}*C  Humidity={1:0.1f}%'.format(temperature, humidity))
@@ -45,9 +48,28 @@ while True:
                 (timenow,temperature, humidity))
     #Commits the data entered above to the table
     db.commit()
+    cur.execute('''SELECT id FROM DHT11_Data0''')
+    data_table_id= cur.fetchall()
+    cur.execute('''SELECT date FROM DHT11_Data0''')
+    data_table_date= cur.fetchall()
+    cur.execute('''SELECT temperature FROM DHT11_Data0''')
+    data_table_temp= cur.fetchall()
+    cur.execute('''SELECT humidity FROM DHT11_Data0''')
+    data_table_hum= cur.fetchall()
+
 #a means apend ti file
     with open(r'DHT11CVS','a') as f:
         writer = csv.writer(f)
         writer.writerow([timenow,temperature,humidity])
-        
-    time.sleep(20)
+    
+    def store_json(data:dict , file_path:str):
+        with open (r'Data.json',"w") as json_file:
+            json.dump(data,json_file)
+    DHT_11 ={}
+    DHT_11["ID"] = data_table_id
+    DHT_11["Date"] = data_table_date
+    DHT_11["Temperature"] = data_table_temp
+    DHT_11["Humidity"] = data_table_hum
+    
+    store_json(DHT_11,r'Data.json')  
+    time.sleep(2)
