@@ -12,7 +12,7 @@ db = mysql.connector.connect(host ="localhost",
                      password = "newuserpassword",
                      db = "RaspberryPi")
 #Creates a cursor to pass on demands to MySQL/MariaDB
-cur = db.cursor()
+cur = db.cursor(dictionary = True)
 # Sensor should be set to Adafruit_DHT.DHT11,
 # Adafruit_DHT.DHT22, or Adafruit_DHT.AM2302.
 sensor = Adafruit_DHT.DHT11
@@ -50,17 +50,7 @@ while True:
     db.commit()
     cur.execute('''SELECT * FROM DHT11_Data0''')
     data_table = cur.fetchall()
-    # cur.execute('''SELECT id FROM DHT11_Data0''')
-    # data_table_id= cur.fetchall()
-    # cur.execute('''SELECT date FROM DHT11_Data0''')
-    # data_table_date= cur.fetchall()
-    # cur.execute('''SELECT temperature FROM DHT11_Data0''')
-    # data_table_temp= cur.fetchall()
-    # cur.execute('''SELECT humidity FROM DHT11_Data0''')
-    # data_table_hum= cur.fetchall()
-    # cur.execute('''SELECT id, temperature, humidity FROM DHT11_Data0''')
-    # data_table_data= cur.fetchall()
-
+    
 #a means apend ti file
     with open(r'DHT11CVS','a') as f:
         writer = csv.writer(f)
@@ -68,22 +58,9 @@ while True:
     
     def store_json(data:dict , file_path:str):
         with open (r'Data.json',"w") as json_file:
-            json.dump(data,json_file)
+            json.dump(data,json_file, indent = 1)
 
     Data = {"Data": data_table}
-    # sdates = {'Date': {'Date':data_table_date,'Data': {'Data': data_table_data}}}
-    #diccionario ={}
-    # DHT_11["ID"] = data_table_id
-    #diccionario["Date"] = {data_table_date}
-    # DHT_11["Temperature"] = data_table_temp
-    # DHT_11["Humidity"] = data_table_hum
-   # diccionario["Date"]["Datos"] = {data_table_id, data_table_temp, data_table_hum}
-    #diccionario["Date"] ["Datos"]["ID"] = data_table_id
-    # DHT_11["DHT11"]["Date"] = data_table_date
-    # DHT_11["DHT11"]["Temperature"] = data_table_temp
-    # DHT_11["DHT11"]["Humidity"] = data_table_hum
-
-
     
     store_json(Data,r'Data.json')  
     time.sleep(2)
